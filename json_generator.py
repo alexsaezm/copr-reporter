@@ -17,6 +17,21 @@ def retrieve_packages(client, project_owner, project_name):
 
 
 def retrieve_builds(client, package):
+
+    # When a build has state of succeeded, we don't need to query COPR for
+    # more information, because we know the builds have succeeded for all
+    # chroots.  A 'failed' state means that there was at least 1 failure,
+    # so in that case we still need to query COPR to see which chroots
+    # suceeded and which chroots failed.
+    latest_build = package.builds['latest']
+    if latest_build['state'] == 'succeeded':
+        builds = []
+        for c in sorted(latest_build['chroots']):
+            builds.append(Munch(name=c, result_url='{}/{}/0{}-{}/'.format(latest_build['repo_url'], c, latest_build['id'], package.name),
+                                           state = latest_build['state']))
+        return builds
+
+
     b = client.build_chroot_proxy.get_list(package.builds['latest']['id'])
     return b
 
