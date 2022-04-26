@@ -43,6 +43,11 @@ if __name__ == '__main__':
         for a, b in zip(v['builds_a'], v['builds_b']):
             state_a = packages[k]['builds_a'][a]['state']
             state_b = packages[k]['builds_b'][b]['state']
-            if state_a != state_b:
+            if state_a == 'succeeded' and state_b == 'failed':
+                packages[k]['changed'] = "Regression"
+                break
+            if state_a == 'failed' and state_b == 'succeeded':
+                packages[k]['changed'] = "Fixed"
+            elif state_a != state_b:
                 packages[k]['changed'] = "Something has changed. You should verify the builds"
     generate_report(title, packages)
